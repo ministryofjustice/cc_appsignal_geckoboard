@@ -39,12 +39,22 @@ class AppSignalApi
     dates = num_errors_per_day.keys
 
     hash['log_entries'].each do | log |
-      log_date = determine_date[dates, log['time']]
+      log_date = determine_date(dates, log['time'])
       unless log_date.nil?
         total_errors += 1
         num_errors_per_day[log_date] += 1
       end
     end
+    { 
+      'item' => 
+      [
+        { 
+          'text' => "Past #{num_errors_per_day.size} days",
+          'value' => total_errors.to_s
+        },
+        num_errors_per_day.values.map(&:to_s)
+      ]
+      }.to_json
   end
 
 
@@ -52,17 +62,19 @@ class AppSignalApi
   def determine_date(date_array, secs_since_epoch)
     t = Time.at(secs_since_epoch)
     return nil if t < date_array.first
+    if t > date_array.last + 86400
+      raise "Given time of #{t.strftime('%Y-%m-%d %H:%M:%S')} is more than 24 hours after last date in period (#{date_array.last.strftime('%Y-%m-%d %H:%M:%S')})"
+    end
 
-    # walk up the array until you get to ta date greater than the time, and then return that date.
-
+    date_array.each_with_index do |date, i|
+      if t < date
+        return date_array[i - 1]
+      end
+    end
+    # if we're here, it must be the last date
+    date_array.last
   end
 
-
-
-
-  def start_of_day(date)
-    date.to_time
-  end
 
 
 end
