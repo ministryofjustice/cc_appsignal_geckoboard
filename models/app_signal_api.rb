@@ -14,6 +14,12 @@ class AppSignalApi
   end
   
 
+  def appsignal
+    url = make_url('samples/errors')
+    file = open url
+    json_contents = file.read
+  end
+
 
 
   def errors
@@ -21,6 +27,10 @@ class AppSignalApi
     file = open url
     json_contents = file.read
     hash = JSON.parse(json_contents)
+    puts "++++++ DEBUG HASH RETURNED DFROM APPSIGNAL ++++++ #{__FILE__}::#{__LINE__} ++++\n"
+    require 'pp'
+    pp hash
+    
     result = analyse_hash(hash)
   end
 

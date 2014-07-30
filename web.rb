@@ -18,9 +18,19 @@ get '/samples' do
   haml :samples
 end
 
+get '/appsignal' do
+  AppSignalApi.new.appsignal
+end
 
 
 get '/errors' do
+  AppSignalApi.new.errors
+end
+
+
+
+
+get '/test' do
   x = {
     "item" => [
       {
