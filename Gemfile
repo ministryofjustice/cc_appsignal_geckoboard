@@ -7,3 +7,4 @@ gem 'sinatra'
 gem 'shotgun'
 gem 'rspec'
 gem 'haml'
+gem 'simplecov', :require => false

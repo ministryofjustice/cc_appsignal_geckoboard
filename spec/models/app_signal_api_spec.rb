@@ -1,20 +1,94 @@
+require 'simplecov'
+SimpleCov.start
+
 require 'rspec'
 require_relative '../../models/app_signal_api'
 
 
 describe AppSignalApi do
 
-  let(:api)     { AppSignalApi.new }
+  let(:api)     do
+    AppSignalApi.new 
+  end
+
+  let(:expected_json_response) do
+    { 'text' => 'json data hash returned from appsignal' }.to_json
+  end
+
+  before(:each) do
+    ENV['APPSIGNAL_SITE_ID']  = 'my_siteid'
+    ENV['APPSIGNAL_TOKEN']    = 'my_token'
+    ENV['APPSIGNAL_BASE_URL'] = 'https://my_url/api'
+  end
+
 
   describe '.new' do
-    it 'should load config values' do
-      api = AppSignalApi.new
+    it 'should raise if site_id env var not set' do
+      ENV['APPSIGNAL_SITE_ID']  = nil
+      expect {
+        api
+      }.to raise_error RuntimeError, 'Environment Variable APPSIGNAL_SITE_ID not set'
+    end
+
+    it 'should raise if token env var not set' do
+      ENV['APPSIGNAL_TOKEN'] = nil
+      expect {
+        api
+      }.to raise_error RuntimeError, 'Environment Variable APPSIGNAL_TOKEN not set'
+    end
+
+    it 'should raise if base url env var not set' do
+      ENV['APPSIGNAL_BASE_URL'] = nil
+      expect {
+        api
+      }.to raise_error RuntimeError, 'Environment Variable APPSIGNAL_BASE_URL not set'
+    end
+
+    it 'should not raise if all three env vars are present' do
       expect(api).to be_instance_of(AppSignalApi)
+    end
+
+  end
+
+
+  describe '#appsignal' do
+    it 'should get appsignal data' do
+      expect(api).to receive(:get_appsignal_data)
+      api.appsignal
     end
   end
 
 
+  describe '#errors' do 
+    it 'should get appsignal data and transform it' do
+      expect(api).to receive(:get_appsignal_data).and_return(expected_json_response)
+      expect(api).to receive(:analyse_hash).with(JSON.parse(expected_json_response))
+      api.errors
+    end
+  end
+
+
+
+
+
   context 'private methods' do
+
+
+    describe '#get_appsignal_data' do
+      it 'should do sthg' do
+        file = double(StringIO)
+        expect(api).to receive(:open).with('https://my_url/api/my_siteid/samples/errors.json?token=my_token').and_return(file)
+        expect(file).to receive(:read).and_return(expected_json_response)
+        x = api.send(:get_appsignal_data)
+        expect(x).to eq expected_json_response
+      end
+    end
+
+
+
+
+
+
 
     describe '#determine_date' do
       let(:date_array) do

@@ -6,37 +6,37 @@ class AppSignalApi
 
 
   def initialize
-    config_file = File.expand_path(File.dirname(__FILE__) + '/../app_signal_api_config.yml')
-    config = YAML.load_file(config_file)
-    @site_id = config['appsignal']['site_id']
-    @token = config['appsignal']['token']
-    @url = config['appsignal']['url']
+    raise "Environment Variable APPSIGNAL_SITE_ID not set"  if ENV['APPSIGNAL_SITE_ID'].nil?
+    raise "Environment Variable APPSIGNAL_TOKEN not set"    if ENV['APPSIGNAL_TOKEN'].nil?
+    raise "Environment Variable APPSIGNAL_BASE_URL not set" if ENV['APPSIGNAL_BASE_URL'].nil?
+
+    @site_id = ENV['APPSIGNAL_SITE_ID']
+    @token   = ENV['APPSIGNAL_TOKEN']
+    @url     = ENV['APPSIGNAL_BASE_URL']
   end
   
 
+  # this is a debugging method which simply returns the data from appsignal - not used by geckoard
   def appsignal
-    url = make_url('samples/errors')
-    file = open url
-    json_contents = file.read
+    get_appsignal_data
   end
 
 
-
+  # gets the data from appsignal and transforms it into a json hash for geckoboard
   def errors
-    url = make_url('samples/errors')
-    file = open url
-    json_contents = file.read
-    hash = JSON.parse(json_contents)
-    puts "++++++ DEBUG HASH RETURNED DFROM APPSIGNAL ++++++ #{__FILE__}::#{__LINE__} ++++\n"
-    require 'pp'
-    pp hash
-    
+    hash = JSON.parse(get_appsignal_data)
     result = analyse_hash(hash)
   end
 
 
 
   private
+
+  def get_appsignal_data
+    url = make_url('samples/errors')
+    file = open url
+    json_contents = file.read
+  end
 
   def make_url(action)
     "#{@url}/#{@site_id}/#{action}.json?token=#{@token}"
