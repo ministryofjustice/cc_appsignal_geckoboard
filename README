@@ -4,3 +4,9 @@ README FOR geckoboard_appsignal
 This is a small Sinatra app which reads the (rather bad) AppSignal API, aggregates the data it recieves
 and provides a JSON hash for Geckoboard to query.
 
+
+
+
+typical query for elasticsearch on logstash: tags:rails AND GET AND download
+
+
